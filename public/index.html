@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #18181c;
+      --surface2: #222228;
+      --border: #2e2e38;
+      --text: #f0eff5;
+      --muted: #7c7c94;
+      --accent: #c8f04a;
+      --accent-dark: #9ebf29;
+      --danger: #ff4f5e;
+      --low: #4fc3f7;
+      --medium: #ffd54f;
+      --high: #ff7043;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo span {
+      background: var(--accent);
+      color: #0f0f11;
+      padding: 2px 10px;
+      border-radius: 6px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stat strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ── ADD FORM ── */
+    .add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .add-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"], textarea, select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+      width: 100%;
+      outline: none;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c7c94' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    select option { background: var(--surface2); }
+
+    .btn {
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 12px 22px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0f0f11;
+    }
+
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--danger);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+    }
+
+    .btn-danger:hover { background: rgba(255,79,94,0.1); }
+
+    /* ── FILTERS ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 6px 16px;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover { color: var(--text); border-color: var(--muted); }
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0f0f11;
+      font-weight: 600;
+    }
+
+    .clear-btn {
+      margin-left: auto;
+    }
+
+    /* ── TODO LIST ── */
+    #todos-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .todo-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: start;
+      transition: border-color 0.2s, opacity 0.2s;
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .todo-item:hover { border-color: #3d3d4d; }
+
+    .todo-item.completed { opacity: 0.5; }
+
+    /* checkbox */
+    .check-wrap {
+      padding-top: 2px;
+    }
+
+    .check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .check:hover { border-color: var(--accent); }
+
+    .todo-item.completed .check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .check svg { display: none; }
+    .todo-item.completed .check svg { display: block; }
+
+    /* content */
+    .todo-body {}
+
+    .todo-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      transition: color 0.2s;
+    }
+
+    .todo-item.completed .todo-title { text-decoration: line-through; color: var(--muted); }
+
+    .todo-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .todo-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-low    { background: rgba(79,195,247,0.15); color: var(--low); }
+    .badge-medium { background: rgba(255,213,79,0.15); color: var(--medium); }
+    .badge-high   { background: rgba(255,112,67,0.15); color: var(--high); }
+
+    .todo-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* actions */
+    .todo-actions { display: flex; gap: 4px; }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+    }
+
+    .icon-btn:hover { background: var(--surface2); color: var(--text); }
+    .icon-btn.delete:hover { color: var(--danger); }
+
+    /* ── EMPTY ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty svg { margin-bottom: 16px; opacity: 0.3; }
+    .empty p { font-size: 1rem; }
+
+    /* ── MODAL (edit) ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      width: 100%;
+      max-width: 500px;
+      transform: translateY(16px);
+      transition: transform 0.2s;
+    }
+
+    .overlay.open .modal { transform: translateY(0); }
+
+    .modal h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.875rem;
+      padding: 12px 18px;
+      z-index: 9999;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { border-color: var(--accent); color: var(--accent); }
+    #toast.error   { border-color: var(--danger); color: var(--danger); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      .stats { display: none; }
+      main { padding: 24px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">Todo <span>Notes</span></div>
+    <div class="stats">
+      <div class="stat">Total: <strong id="stat-total">0</strong></div>
+      <div class="stat">Done: <strong id="stat-done">0</strong></div>
+      <div class="stat">Pending: <strong id="stat-pending">0</strong></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Add Form -->
+    <div class="add-card">
+      <h2>New Note</h2>
+      <div class="form-row">
+        <input type="text" id="input-title" placeholder="What needs to be done?" />
+      </div>
+      <div class="form-row">
+        <textarea id="input-desc" placeholder="Add a description (optional)…" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <select id="input-priority">
+          <option value="low">🔵 Low Priority</option>
+          <option value="medium" selected>🟡 Medium Priority</option>
+          <option value="high">🔴 High Priority</option>
+        </select>
+        <button class="btn btn-primary" onclick="addTodo()">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all"    onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn"        data-filter="active" onclick="setFilter('active',this)">Pending</button>
+      <button class="filter-btn"        data-filter="done"   onclick="setFilter('done',this)">Completed</button>
+      <button class="btn btn-danger clear-btn" onclick="clearCompleted()">Clear Completed</button>
+    </div>
+
+    <!-- List -->
+    <div id="todos-list"></div>
+
+  </main>
+</div>
+
+<!-- Edit Modal -->
+<div class="overlay" id="edit-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <h2>Edit Note</h2>
+    <input type="hidden" id="edit-id" />
+    <div style="margin-bottom:10px">
+      <input type="text" id="edit-title" placeholder="Title" />
+    </div>
+    <div style="margin-bottom:10px">
+      <textarea id="edit-desc" placeholder="Description" rows="3"></textarea>
+    </div>
+    <div style="margin-bottom:10px">
+      <select id="edit-priority">
+        <option value="low">🔵 Low Priority</option>
+        <option value="medium">🟡 Medium Priority</option>
+        <option value="high">🔴 High Priority</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = '/api/todos';
+  let todos = [];
+  let currentFilter = 'all';
+
+  // ── FETCH & RENDER ──────────────────────────────────────
+
+  async function fetchTodos() {
+    try {
+      const res = await fetch(API);
+      todos = await res.json();
+      render();
+    } catch { showToast('Failed to load todos', 'error'); }
+  }
+
+  function render() {
+    let filtered = todos;
+    if (currentFilter === 'active') filtered = todos.filter(t => !t.completed);
+    if (currentFilter === 'done')   filtered = todos.filter(t => t.completed);
+
+    const list = document.getElementById('todos-list');
+
+    if (filtered.length === 0) {
+      const msgs = { all: 'No notes yet — add one above!', active: 'Nothing pending 🎉', done: 'Nothing completed yet.' };
+      list.innerHTML = `
+        <div class="empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          <p>${msgs[currentFilter]}</p>
+        </div>`;
+    } else {
+      list.innerHTML = filtered.map(todoHTML).join('');
+    }
+
+    const done = todos.filter(t => t.completed).length;
+    document.getElementById('stat-total').textContent   = todos.length;
+    document.getElementById('stat-done').textContent    = done;
+    document.getElementById('stat-pending').textContent = todos.length - done;
+  }
+
+  function todoHTML(t) {
+    const date = new Date(t.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    return `
+      <div class="todo-item ${t.completed ? 'completed' : ''}" id="todo-${t._id}">
+        <div class="check-wrap">
+          <div class="check" onclick="toggleTodo('${t._id}')">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#0f0f11" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="2,6 5,9 10,3"/>
+            </svg>
+          </div>
+        </div>
+        <div class="todo-body">
+          <div class="todo-title">${escHtml(t.title)}</div>
+          ${t.description ? `<div class="todo-desc">${escHtml(t.description)}</div>` : ''}
+          <div class="todo-meta">
+            <span class="badge badge-${t.priority}">${t.priority}</span>
+            <span class="todo-date">${date}</span>
+          </div>
+        </div>
+        <div class="todo-actions">
+          <button class="icon-btn" onclick="openEditModal('${t._id}')" title="Edit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn delete" onclick="deleteTodo('${t._id}')" title="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  // ── CRUD ────────────────────────────────────────────────
+
+  async function addTodo() {
+    const title    = document.getElementById('input-title').value.trim();
+    const description = document.getElementById('input-desc').value.trim();
+    const priority = document.getElementById('input-priority').value;
+
+    if (!title) { showToast('Title is required', 'error'); return; }
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, priority })
+      });
+      const todo = await res.json();
+      todos.unshift(todo);
+      document.getElementById('input-title').value = '';
+      document.getElementById('input-desc').value  = '';
+      document.getElementById('input-priority').value = 'medium';
+      render();
+      showToast('Note added!', 'success');
+    } catch { showToast('Failed to add note', 'error'); }
+  }
+
+  async function toggleTodo(id) {
+    try {
+      const res = await fetch(`${API}/${id}/toggle`, { method: 'PATCH' });
+      const updated = await res.json();
+      todos = todos.map(t => t._id === id ? updated : t);
+      render();
+    } catch { showToast('Failed to update note', 'error'); }
+  }
+
+  async function deleteTodo(id) {
+    try {
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      todos = todos.filter(t => t._id !== id);
+      render();
+      showToast('Note deleted', 'success');
+    } catch { showToast('Failed to delete note', 'error'); }
+  }
+
+  async function clearCompleted() {
+    if (!todos.some(t => t.completed)) { showToast('No completed notes to clear', 'error'); return; }
+    try {
+      await fetch(`${API}/completed/all`, { method: 'DELETE' });
+      todos = todos.filter(t => !t.completed);
+      render();
+      showToast('Cleared completed notes', 'success');
+    } catch { showToast('Failed to clear completed', 'error'); }
+  }
+
+  // ── EDIT MODAL ──────────────────────────────────────────
+
+  function openEditModal(id) {
+    const t = todos.find(x => x._id === id);
+    if (!t) return;
+    document.getElementById('edit-id').value       = t._id;
+    document.getElementById('edit-title').value    = t.title;
+    document.getElementById('edit-desc').value     = t.description || '';
+    document.getElementById('edit-priority').value = t.priority;
+    document.getElementById('edit-overlay').classList.add('open');
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-overlay').classList.remove('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('edit-overlay')) closeEditModal();
+  }
+
+  async function saveEdit() {
+    const id       = document.getElementById('edit-id').value;
+    const title    = document.getElementById('edit-title').value.trim();
+    const description = document.getElementById('edit-desc').value.trim();
+    const priority = document.getElementById('edit-priority').value;
+    const todo     = todos.find(t => t._id === id);
+
+    if (!title) { showToast('Title is required', 'error'); return; }
+
+    try {
+      const res = await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, priority, completed: todo.completed })
+      });
+      const updated = await res.json();
+      todos = todos.map(t => t._id === id ? updated : t);
+      closeEditModal();
+      render();
+      showToast('Note updated!', 'success');
+    } catch { showToast('Failed to update note', 'error'); }
+  }
+
+  // ── FILTER ──────────────────────────────────────────────
+
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  // ── UTILS ───────────────────────────────────────────────
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 2800);
+  }
+
+  // Enter key on title input
+  document.getElementById('input-title').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTodo();
+  });
+
+  // Escape key closes modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeEditModal();
+  });
+
+  fetchTodos();
+</script>
+</body>
+</html>

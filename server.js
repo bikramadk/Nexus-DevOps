@@ -1,6 +1,4 @@
 const client = require('prom-client');
-
-// Collect default metrics (memory, CPU, event loop etc)
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics();
 
@@ -12,6 +10,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/todoapp';
+
+// Metrics endpoint - MUST be before static middleware
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 // Middleware
 app.use(cors());

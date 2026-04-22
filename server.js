@@ -1,3 +1,9 @@
+const client = require('prom-client');
+
+// Collect default metrics (memory, CPU, event loop etc)
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -42,7 +48,11 @@ const todoSchema = new mongoose.Schema({
 
 const Todo = mongoose.model('Todo', todoSchema);
 
-// ─── ROUTES ───────────────────────────────────────────────
+// Metrics endpoint for Prometheus
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 // GET all todos
 app.get('/api/todos', async (req, res) => {

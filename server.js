@@ -11,11 +11,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/todoapp';
 
-// Metrics endpoint - MUST be before static middleware
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', client.register.contentType);
-  res.end(await client.register.metrics());
+const metricsServer = http.createServer(async (req, res) => {
+  if (req.url === '/metrics') {
+    res.setHeader('Content-Type', client.register.contentType);
+    const metrics = await client.register.metrics();
+    res.end(metrics);
+  }
 });
+metricsServer.listen(9091, () => {
+  console.log(' Metrics available at http://localhost:9091/metrics');
+});
+
 
 // Middleware
 app.use(cors());
@@ -24,8 +30,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Todo Schema
 const todoSchema = new mongoose.Schema({

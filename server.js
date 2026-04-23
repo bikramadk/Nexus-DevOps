@@ -1,3 +1,5 @@
+const http = require('http');
+
 const client = require('prom-client');
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics();

@@ -6,6 +6,7 @@ services:
     container_name: todo-app
     ports:
       - "3000:3000"
+      - "9091:9091"
     environment:
       - MONGO_URI=mongodb://mongo:27017/todoapp
     depends_on:

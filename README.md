@@ -86,7 +86,7 @@ Complete setup and install suggested plugins.
 
 ---
 
-## 🔄 Step 5 — Create Jenkins Pipeline
+##  Step 5 — Create Jenkins Pipeline
 
 1. Open Jenkins → New Item
 2. Name: `todo-app-pipeline`
@@ -115,7 +115,7 @@ Click **Save → Build Now**
 
 ---
 
-## 🔔 Step 6 — Set Up GitHub Webhook (Auto Deploy)
+##  Step 6 — Set Up GitHub Webhook (Auto Deploy)
 
 ### Jenkins:
 
